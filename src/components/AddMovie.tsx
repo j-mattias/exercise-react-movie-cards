@@ -1,16 +1,21 @@
 import { ReactElement, useRef, useState } from "react";
 import "./AddMovie.css";
 import { IMovie } from "../interfaces";
-import MovieList from "./MovieList";
 
 const GENRES: string[] = ["Drama", "Fantasy", "Action", "Sci-fi", "Comedy", "Romance"];
+const DEFAULT_RATING = 3;
 
-export default function AddMovie(): ReactElement {
-  const [movieList, setMovieList] = useState<IMovie[] | null>(null);
-  const [rating, setRating] = useState<number>(3);
+interface IAddMovieProps {
+  movieList: IMovie[] | null;
+  handleAddMovie: (newItem: IMovie) => void;
+}
+
+export default function AddMovie({ movieList, handleAddMovie }: IAddMovieProps): ReactElement {
+  const [rating, setRating] = useState<number>(DEFAULT_RATING);
   const [entryMissing, setEntryMissing] = useState<boolean>(false);
 
-  const formRef = useRef<HTMLFormElement | null>(null);
+  // Used for clearing the form when clicking clear button
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Helper function to set movie id
   const findMaxId = (movieList: IMovie[]) => {
@@ -20,14 +25,12 @@ export default function AddMovie(): ReactElement {
     return 1;
   };
 
-  // React.FormEvent<HTMLFormElement>
   const addMovie: React.FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
 
     // Assert target to be a HTMLFormElement and capture form values in a FormData object
     const target = e.target as HTMLFormElement;
     const formData = new FormData(target);
-    // console.log(formData);
 
     // If there are empty fields, early return and display error message
     for (const value of formData.values()) {
@@ -49,18 +52,25 @@ export default function AddMovie(): ReactElement {
     };
 
     // Add movie to movieList
-    movieList ? setMovieList([...movieList, movie]) : setMovieList([movie]);
+    handleAddMovie(movie);
 
     // Reset the form inputs
     target.reset();
+    setRating(DEFAULT_RATING);
     console.log("saved movie: ", movie);
+  };
+
+  // Reset the form when hitting clear
+  const clearForm: React.MouseEventHandler<HTMLButtonElement> = () => {
+    setRating(DEFAULT_RATING);
+    formRef.current?.reset();
   };
 
   return (
     <>
       {/* Display error if fields were empty on submit */}
       {entryMissing && <div className="alert">Please fill out all fields</div>}
-      
+
       <form className="form-movie" onSubmit={addMovie} ref={formRef}>
         <div className="input-wrapper">
           <label htmlFor="movie-title">Title</label>
@@ -91,7 +101,6 @@ export default function AddMovie(): ReactElement {
         <div className="input-wrapper">
           <label htmlFor="movie-genre">Genre</label>
           <select name="genre" id="movie-genre">
-            {/* <option value="" selected disabled hidden>--Select--</option> */}
             {GENRES.map((genre, i) => (
               <option value={genre} key={i}>
                 {genre}
@@ -104,7 +113,7 @@ export default function AddMovie(): ReactElement {
           <div className="desc-wrapper">
             <textarea name="description" id="movie-desc"></textarea>
             <div className="button-wrapper">
-              <button className="clear-desc" onClick={() => formRef.current!.reset()} type="button">
+              <button className="clear-desc" onClick={clearForm} type="button">
                 Clear
               </button>
               <button className="add-movie" type="submit">
@@ -114,7 +123,6 @@ export default function AddMovie(): ReactElement {
           </div>
         </div>
       </form>
-      {movieList && <MovieList movieList={movieList} />}
     </>
   );
 }

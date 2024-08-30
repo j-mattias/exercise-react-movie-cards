@@ -6,6 +6,7 @@
 
 body {
   background-color: #1e1d2b;
+  background: linear-gradient(#1e1d2b, #222b5a);
   color: white;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
